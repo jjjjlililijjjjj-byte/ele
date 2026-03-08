@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, MapPin, Calendar, Layers, Info, X, Github, ArrowLeft, Heart, ChevronDown, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Calendar, Layers, Info, X, Github, ArrowLeft, Heart, ChevronDown, ChevronRight, LayoutGrid, Map } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { slidesData } from './data';
 import { ElephantSlide, SlideStatus } from './types';
@@ -29,6 +29,22 @@ export default function App() {
   const [expandedCities, setExpandedCities] = useState<string[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isContributeOpen, setIsContributeOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [displayMode, setDisplayMode] = useState<'map' | 'grid'>('map');
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) {
+        setIsSidebarOpen(false); // Default closed on mobile
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('elephant-slides-favorites', JSON.stringify(favorites));
@@ -110,47 +126,57 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#f4f5f7] text-slate-800 font-sans overflow-hidden">
+    <div className="flex flex-col h-screen h-[100dvh] bg-[#f4f5f7] text-slate-800 font-sans overflow-hidden">
       {/* Header */}
-      <header className="flex-none bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between z-10 shadow-sm">
-        <div className="flex items-center gap-4">
+      <header className="flex-none bg-white border-b border-slate-200 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between z-10 shadow-sm">
+        <div className="flex items-center gap-3 md:gap-4">
           <button 
             onClick={() => setView('home')}
-            className="p-2 -ml-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
+            className="p-1.5 md:p-2 -ml-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
             title="返回首页"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#7a808d] rounded-lg flex items-center justify-center">
-              <ElephantIcon className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-7 h-7 md:w-8 md:h-8 bg-[#7a808d] rounded-lg flex items-center justify-center">
+              <ElephantIcon className="w-4 h-4 md:w-5 md:h-5 text-white" />
             </div>
-            <h1 className="text-xl font-serif font-semibold tracking-tight text-slate-900">全国大象滑梯图鉴</h1>
+            <h1 className="text-base md:text-xl font-serif font-semibold tracking-tight text-slate-900">全国大象滑梯图鉴</h1>
           </div>
         </div>
         
         <div className="flex-1"></div>
 
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-2 md:gap-4 text-sm">
+          <button 
+            onClick={() => setDisplayMode(displayMode === 'map' ? 'grid' : 'map')}
+            className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 transition-colors px-2 md:px-3 py-1.5 rounded-full hover:bg-slate-50"
+            title={displayMode === 'map' ? "切换至列表视图" : "切换至地图视图"}
+          >
+            {displayMode === 'map' ? <LayoutGrid className="w-4 h-4" /> : <Map className="w-4 h-4" />}
+            <span className="hidden md:inline">{displayMode === 'map' ? "列表视图" : "地图视图"}</span>
+          </button>
           <button 
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-            className={`flex items-center gap-1.5 transition-colors px-3 py-1.5 rounded-full ${showFavoritesOnly ? 'bg-red-50 text-red-500' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+            className={`flex items-center gap-1.5 transition-colors px-2 md:px-3 py-1.5 rounded-full ${showFavoritesOnly ? 'bg-red-50 text-red-500' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
           >
             <Heart className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-            <span>收藏夹</span>
+            <span className="hidden md:inline">收藏夹</span>
           </button>
           <button 
             onClick={() => setIsContributeOpen(true)}
-            className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 transition-colors"
+            className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 transition-colors px-2 py-1.5"
           >
             <Github className="w-4 h-4" />
-            <span>贡献数据</span>
+            <span className="hidden md:inline">贡献数据</span>
           </button>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 flex overflow-hidden relative">
+        {displayMode === 'map' ? (
+          <>
         {/* Left: Map */}
         <div className="flex-1 h-full relative border-r border-slate-200 bg-slate-100 z-0">
           <iframe 
@@ -170,7 +196,7 @@ export default function App() {
           </button>
           
           {/* Map Overlay Filters */}
-          <div className="absolute top-4 left-4 right-4 z-[400] flex gap-4 pointer-events-none">
+          <div className="absolute top-4 left-4 right-4 z-[400] flex flex-col md:flex-row gap-4 pointer-events-none">
             <div className="bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg border border-white/20 pointer-events-auto flex-1 max-w-md">
               <div className="flex items-center gap-2 mb-3">
                 <Layers className="w-4 h-4 text-slate-500" />
@@ -218,15 +244,28 @@ export default function App() {
 
         {/* Right: List (Collapsible Sidebar) */}
         <motion.div 
-          initial={{ width: 540 }}
-          animate={{ width: isSidebarOpen ? 540 : 0 }}
+          initial={false}
+          animate={{ 
+            width: isSidebarOpen ? (isMobile ? '100%' : 540) : 0,
+            x: isMobile && !isSidebarOpen ? '100%' : 0 
+          }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="h-full bg-[#f4f5f7] border-l border-slate-200 overflow-hidden flex flex-col shadow-xl z-10"
+          className={`h-full bg-[#f4f5f7] border-l border-slate-200 overflow-hidden flex flex-col shadow-xl z-20 ${isMobile ? 'absolute right-0 top-0 bottom-0' : 'relative'}`}
         >
           <div className="p-6 flex-none bg-white border-b border-slate-100">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-medium text-slate-800">档案列表</h2>
-              <span className="text-sm text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded-md">{filteredSlides.length} results</span>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded-md">{filteredSlides.length} results</span>
+                {isMobile && (
+                  <button 
+                    onClick={() => setIsSidebarOpen(false)}
+                    className="p-1 text-slate-400 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-full transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
             </div>
             
             <div className="relative">
@@ -373,6 +412,161 @@ export default function App() {
           )}
           </div>
         </motion.div>
+          </>
+        ) : (
+          <div className="flex-1 overflow-y-auto bg-[#f4f5f7] p-4 md:p-8">
+            {/* Filters Header */}
+            <div className="max-w-7xl mx-auto mb-8 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                <input 
+                  type="text" 
+                  placeholder="搜索编号、城市或昵称..." 
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-[#7a808d] focus:border-transparent transition-all"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Layers className="w-4 h-4 text-slate-500" />
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">材质筛选</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <button 
+                      onClick={() => setSelectedMaterial(null)}
+                      className={`px-3 py-1.5 text-sm rounded-full transition-colors ${!selectedMaterial ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    >
+                      全部
+                    </button>
+                    {materials.map(mat => (
+                      <button 
+                        key={mat}
+                        onClick={() => setSelectedMaterial(mat)}
+                        className={`px-3 py-1.5 text-sm rounded-full transition-colors ${selectedMaterial === mat ? 'bg-[#b2c8b2] text-slate-900 font-medium' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                      >
+                        {mat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex-1 max-w-md">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-slate-500" />
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">年代分布</h3>
+                    </div>
+                    <span className="text-sm font-mono text-slate-500">{yearRange[0]} - {yearRange[1]}</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="1950" 
+                    max="2020" 
+                    step="5"
+                    value={yearRange[1]} 
+                    onChange={(e) => setYearRange([yearRange[0], parseInt(e.target.value)])}
+                    className="w-full accent-[#7a808d]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Grid Content */}
+            <div className="max-w-7xl mx-auto space-y-12">
+              {Object.entries(groupedSlides).map(([province, cities]) => (
+                <div key={province}>
+                  <h2 className="text-2xl font-serif font-bold text-slate-800 mb-6 flex items-center gap-2 sticky top-0 bg-[#f4f5f7]/95 backdrop-blur-sm py-4 z-10">
+                    <MapPin className="w-6 h-6 text-slate-400" />
+                    {province}
+                    <span className="text-sm font-normal text-slate-400 bg-white px-2 py-0.5 rounded-full border border-slate-200 ml-2">
+                      {Object.values(cities).reduce((acc, slides) => acc + slides.length, 0)}
+                    </span>
+                  </h2>
+                  <div className="space-y-8 pl-4 md:pl-8 border-l-2 border-slate-200 ml-3">
+                    {Object.entries(cities).map(([city, slides]) => (
+                      <div key={city}>
+                        <h3 className="text-lg font-medium text-slate-600 mb-4 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-slate-300"></span>
+                          {city}
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                          {slides.map(slide => (
+                            <motion.div 
+                              key={slide.id}
+                              layoutId={`card-${slide.id}`}
+                              onClick={() => setSelectedSlide(slide)}
+                              className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-slate-200 hover:border-[#7a808d]/30 transition-all"
+                            >
+                              <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
+                                {slide.imageUrl ? (
+                                  <img 
+                                    src={slide.imageUrl} 
+                                    alt={slide.nickname}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    referrerPolicy="no-referrer"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-300">
+                                    <ElephantIcon className="w-12 h-12 opacity-20" />
+                                  </div>
+                                )}
+                                <div className="absolute top-3 right-3 flex gap-2">
+                                  {slide.status === 'demolished' && (
+                                    <div className="bg-red-500/90 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm shadow-sm">
+                                      已拆除
+                                    </div>
+                                  )}
+                                  <button 
+                                    onClick={(e) => toggleFavorite(e, slide.id)}
+                                    className={`p-1.5 rounded-full backdrop-blur-md shadow-sm transition-colors ${favorites.includes(slide.id) ? 'bg-white text-red-500' : 'bg-black/20 text-white hover:bg-white hover:text-red-500'}`}
+                                  >
+                                    <Heart className={`w-3.5 h-3.5 ${favorites.includes(slide.id) ? 'fill-current' : ''}`} />
+                                  </button>
+                                </div>
+                                <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded text-[10px] font-medium text-slate-600 shadow-sm">
+                                  {slide.id}
+                                </div>
+                              </div>
+                              
+                              <div className="p-4">
+                                <h3 className="text-lg font-serif font-bold mb-1 text-slate-900 group-hover:text-[#7a808d] transition-colors line-clamp-1">{slide.nickname}</h3>
+                                <div className="flex items-center gap-1.5 text-sm text-slate-500 mb-3">
+                                  <MapPin className="w-3.5 h-3.5" />
+                                  <span className="line-clamp-1">{slide.location}</span>
+                                </div>
+                                
+                                <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="w-3 h-3" />
+                                    <span>{slide.buildYear}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <Layers className="w-3 h-3" />
+                                    <span>{slide.material}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              
+              {filteredSlides.length === 0 && (
+                <div className="flex flex-col items-center justify-center h-64 text-slate-400">
+                  <Info className="w-12 h-12 mb-4 opacity-50" />
+                  <p className="text-lg">没有找到符合条件的大象滑梯</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Detail Drawer / Modal */}

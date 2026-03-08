@@ -138,7 +138,7 @@ export default function PuzzleGame({ onBack }: PuzzleGameProps) {
   const imageUrl = `data:image/svg+xml;utf8,${encodeURIComponent(level.svg)}`;
 
   return (
-    <div className="min-h-screen bg-[#fdfdfc] text-slate-900 font-sans flex flex-col overflow-hidden">
+    <div className="min-h-screen min-h-[100dvh] bg-[#fdfdfc] text-slate-900 font-sans flex flex-col overflow-hidden">
       {/* Header */}
       <header className="flex-none px-4 py-3 md:px-6 md:py-4 flex items-center justify-between border-b border-slate-100 bg-white/80 backdrop-blur-sm z-10">
         <button 

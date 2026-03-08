@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, MapPin, Sparkles } from 'lucide-react';
+import { ArrowRight, MapPin, Sparkles, RefreshCw, X, Mail, Copy, Check } from 'lucide-react';
 import { slidesData } from '../data';
 import { ElephantIcon } from './ElephantIcon';
+import { ImageWithSkeleton } from './ImageWithSkeleton';
 
 interface HomeProps {
   onExplore: () => void;
@@ -10,8 +11,25 @@ interface HomeProps {
 }
 
 export default function Home({ onExplore, onPlayGame }: HomeProps) {
-  // Get a few featured slides for the gallery
-  const featuredSlides = slidesData.slice(0, 6);
+  // State for featured slides with shuffle functionality
+  const [featuredSlides, setFeaturedSlides] = useState(() => {
+    const validSlides = slidesData.filter(slide => slide.imageUrl && slide.imageUrl.startsWith('http'));
+    return [...validSlides].sort(() => Math.random() - 0.5).slice(0, 6);
+  });
+  
+  const [isContactOpen, setIsContactOpen] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleRefresh = () => {
+    const validSlides = slidesData.filter(slide => slide.imageUrl && slide.imageUrl.startsWith('http'));
+    setFeaturedSlides([...validSlides].sort(() => Math.random() - 0.5).slice(0, 6));
+  };
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText('15599588842@163.com');
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   // Filter slides with valid images for background rotation
   const backgroundImages = useMemo(() => {
@@ -34,31 +52,33 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
   }, [backgroundImages]);
 
   return (
-    <div className="min-h-screen bg-[#fdfdfc] text-slate-900 font-sans overflow-y-auto">
+    <div className="min-h-screen min-h-[100dvh] bg-[#fdfdfc] text-slate-900 font-sans overflow-y-auto">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-50 border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-slate-900 rounded-sm flex items-center justify-center">
-              <ElephantIcon className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-serif font-semibold text-lg tracking-wide">大象滑梯图鉴</span>
+            <span className="font-serif font-semibold text-lg tracking-wide">中国大象滑梯图鉴</span>
           </div>
-          <div className="flex items-center gap-8 text-sm font-medium">
-            <a href="#" className="text-slate-900">首页</a>
-            <a href="#" className="text-slate-500 hover:text-slate-900 transition-colors">关于计划</a>
+          <div className="flex items-center gap-4 md:gap-8 text-sm font-medium">
+            <a href="#" className="text-slate-900 hidden md:block">首页</a>
+            <button 
+              onClick={() => setIsContactOpen(true)}
+              className="text-slate-500 hover:text-slate-900 transition-colors hidden md:block"
+            >
+              联系我们
+            </button>
             <button 
               onClick={onExplore}
-              className="bg-slate-900 text-white px-5 py-2.5 rounded-full hover:bg-slate-800 transition-colors flex items-center gap-2"
+              className="bg-slate-900 text-white px-4 py-2 md:px-5 md:py-2.5 rounded-full hover:bg-slate-800 transition-colors flex items-center gap-2 text-xs md:text-sm"
             >
-              探索地图 <ArrowRight className="w-4 h-4" />
+              探索地图 <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
             </button>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden bg-slate-900">
+      <section className="relative h-screen h-[100dvh] flex flex-col items-center justify-center overflow-hidden bg-slate-900">
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <AnimatePresence mode="popLayout">
@@ -71,11 +91,13 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
                 transition={{ duration: 2, ease: "easeInOut" }}
                 className="absolute inset-0"
               >
-                <img 
+                <ImageWithSkeleton 
                   src={backgroundImages[currentBgIndex]} 
                   alt="Background" 
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
+                  containerClassName="w-full h-full"
+                  skeletonClassName="bg-slate-800"
                 />
               </motion.div>
             )}
@@ -89,10 +111,10 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
           >
-            <p className="text-sm md:text-base font-semibold tracking-[0.3em] text-white/80 uppercase mb-6 drop-shadow-md">
+            <p className="text-xs md:text-base font-semibold tracking-[0.3em] text-white/80 uppercase mb-4 md:mb-6 drop-shadow-md">
               Digital Archaeology & Preservation
             </p>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold text-white leading-[1.1] mb-8 tracking-tight drop-shadow-lg">
+            <h1 className="text-4xl md:text-7xl lg:text-8xl font-serif font-bold text-white leading-[1.1] mb-6 md:mb-8 tracking-tight drop-shadow-lg">
               寻找中国<br />大象滑梯的记忆
             </h1>
           </motion.div>
@@ -175,7 +197,16 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
         {/* Gallery Grid */}
         <div className="max-w-6xl mx-auto px-6 mb-24">
           <div className="flex items-center justify-between mb-12 border-b border-slate-200 pb-6">
-            <h2 className="text-3xl font-serif font-bold">精选档案</h2>
+            <div className="flex items-center gap-4">
+              <h2 className="text-3xl font-serif font-bold">精选档案</h2>
+              <button 
+                onClick={handleRefresh}
+                className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
+                title="换一批"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
+            </div>
             <button onClick={onExplore} className="text-sm font-medium hover:text-slate-500 transition-colors">
               查看全部 {slidesData.length} 座滑梯 →
             </button>
@@ -193,14 +224,15 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
                 onClick={onExplore}
               >
                 <div className="aspect-[4/3] rounded-xl overflow-hidden bg-slate-100 mb-4 relative">
-                  <img 
+                  <ImageWithSkeleton 
                     src={slide.imageUrl} 
                     alt={slide.nickname}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
+                    containerClassName="w-full h-full"
                   />
                   {slide.status === 'demolished' && (
-                    <div className="absolute top-3 right-3 bg-red-500/90 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm">
+                    <div className="absolute top-3 right-3 bg-red-500/90 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm z-20">
                       已拆除
                     </div>
                   )}
@@ -249,6 +281,62 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
           </div>
         </div>
       </footer>
+
+      {/* Contact Modal */}
+      <AnimatePresence>
+        {isContactOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsContactOpen(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 md:p-8 overflow-hidden z-10"
+            >
+              <button 
+                onClick={() => setIsContactOpen(false)}
+                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex flex-col items-center text-center">
+                <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                  <Mail className="w-6 h-6 text-slate-900" />
+                </div>
+                <h3 className="text-xl font-serif font-bold text-slate-900 mb-2">联系我们</h3>
+                <p className="text-slate-500 mb-6 text-sm">
+                  如果您有关于大象滑梯的线索、照片或故事，<br/>欢迎通过邮件与我们联系。
+                </p>
+
+                <div className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between gap-3 mb-6 group hover:border-slate-300 transition-colors">
+                  <span className="font-mono text-slate-900 font-medium truncate select-all">15599588842@163.com</span>
+                  <button 
+                    onClick={handleCopyEmail}
+                    className="p-2 text-slate-400 hover:text-slate-900 hover:bg-white rounded-lg transition-all"
+                    title="复制邮箱"
+                  >
+                    {isCopied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+
+                <a 
+                  href="mailto:15599588842@163.com"
+                  className="w-full bg-slate-900 text-white py-3 rounded-full font-medium hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Mail className="w-4 h-4" /> 发送邮件
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

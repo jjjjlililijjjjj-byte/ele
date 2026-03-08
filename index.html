@@ -1,13 +1,53 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <title>中国大象滑梯图鉴</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Patch console to prevent 'Converting circular structure to JSON' errors in the preview environment
+      (function() {
+        const originalError = console.error;
+        const originalLog = console.log;
+        const originalWarn = console.warn;
+
+        function safeLog(method, args) {
+          try {
+            JSON.stringify(args); // Test for circular reference
+            method.apply(console, args);
+          } catch (e) {
+            // If circular, log a safe message instead
+            method.call(console, '[Circular Object Logged - Suppressed to prevent environment error]');
+          }
+        }
+
+        console.error = function(...args) { safeLog(originalError, args); };
+        console.log = function(...args) { safeLog(originalLog, args); };
+        console.warn = function(...args) { safeLog(originalWarn, args); };
+      })();
+    </script>
+    <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
+    <script>
+      new CozeWebSDK.WebChatClient({
+        config: {
+          bot_id: '7614866798114242566',
+        },
+        componentProps: {
+          title: 'Coze',
+        },
+        auth: {
+          type: 'token',
+          token: 'pat_0Brdj5K5jGV6YtVr7tcmfU7Lbi5IxF7YuqMFww1gCE3yqFD7rz9QTnUESHoJQ5tk',
+          onRefreshToken: function () {
+            return 'pat_0Brdj5K5jGV6YtVr7tcmfU7Lbi5IxF7YuqMFww1gCE3yqFD7rz9QTnUESHoJQ5tk'
+          }
+        }
+      });
+    </script>
   </body>
 </html>
 
