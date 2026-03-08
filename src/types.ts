@@ -11,4 +11,9 @@ export interface ElephantSlide {
   coordinates: [number, number];
   description: string;
   imageUrl: string;
+  relatedArticles?: {
+    title: string;
+    url: string;
+    source?: string;
+  }[];
 }

@@ -65,10 +65,26 @@ async function main() {
       if (cleanDesc.includes('玻璃钢')) material = '玻璃钢';
       if (cleanDesc.includes('砖')) material = '砖混';
       
-      let imageUrl = "https://picsum.photos/seed/elephant" + idCounter + "/600/400";
+      let imageUrl = "";
       const imgMatch = description.match(/<img src="([^"]+)"/);
       if (imgMatch) {
         imageUrl = imgMatch[1];
+      } else {
+        // Try to extract from gx_media_links if img tag is not found
+        const mediaLinksMatch = pm.ExtendedData?.Data?.find?.(d => d['@_name'] === 'gx_media_links');
+        if (mediaLinksMatch && mediaLinksMatch.value) {
+            const links = mediaLinksMatch.value.split(' ');
+            if (links.length > 0) {
+                imageUrl = links[0];
+            }
+        }
+      }
+
+      // Convert Google My Maps hosted images to use a proxy for correct inline display
+      if (imageUrl && imageUrl.includes('mymaps.usercontent.google.com')) {
+        // Remove the ?fife=... parameter if present
+        const cleanUrl = imageUrl.split('?')[0];
+        imageUrl = `https://images.weserv.nl/?url=${encodeURIComponent(cleanUrl)}&w=800`;
       }
       
       slides.push({

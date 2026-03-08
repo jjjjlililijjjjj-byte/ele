@@ -37,62 +37,107 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
       </nav>
 
       {/* Hero Section */}
-      <main className="pt-32 pb-20">
-        <div className="max-w-4xl mx-auto px-6 text-center mb-16">
+      <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url('/images/hero-bg.png')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+          }}
+        >
+          <div className="absolute inset-0 bg-black/30" /> {/* Overlay for text readability */}
+        </div>
+
+        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 1, ease: "easeOut" }}
           >
-            <p className="text-sm font-semibold tracking-[0.2em] text-slate-500 uppercase mb-6">
+            <p className="text-sm md:text-base font-semibold tracking-[0.3em] text-white/80 uppercase mb-6 drop-shadow-md">
               Digital Archaeology & Preservation
             </p>
-            <h1 className="text-5xl md:text-7xl font-serif font-bold text-slate-900 leading-[1.1] mb-8 tracking-tight">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-serif font-bold text-white leading-[1.1] mb-8 tracking-tight drop-shadow-lg">
               寻找中国<br />大象滑梯的记忆
             </h1>
-            <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed font-serif">
-              水磨石的温润，水泥的坚固。它们曾是几代人童年最珍贵的游乐场，如今正随着城市更新悄然消失。这是一场与时间赛跑的数字化考古。
-            </p>
           </motion.div>
         </div>
 
-        {/* Hero Image */}
+        {/* Scroll Indicator */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1, delay: 0.2 }}
-          className="max-w-6xl mx-auto px-6 mb-24"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5, duration: 1 }}
+          className="absolute bottom-12 left-1/2 -translate-x-1/2 text-white/70 flex flex-col items-center gap-2"
         >
-          <div className="aspect-[21/9] rounded-2xl overflow-hidden bg-slate-100 relative group">
-            <img 
-              src="https://images.unsplash.com/photo-1604004218844-48601676831d?q=80&w=2574&auto=format&fit=crop" 
-              alt="Vintage playground" 
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-black/10"></div>
-          </div>
-          <p className="text-xs text-slate-400 text-center mt-4 font-mono uppercase tracking-widest">
-            Documenting the fading playgrounds of our childhood
-          </p>
+          <span className="text-[10px] uppercase tracking-widest">Scroll to Explore</span>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <ArrowRight className="w-5 h-5 rotate-90" />
+          </motion.div>
         </motion.div>
+      </section>
 
-        {/* Article Body */}
-        <div className="max-w-3xl mx-auto px-6 font-serif text-lg leading-loose text-slate-800 space-y-8 mb-24">
-          <p>
-            在20世纪70年代至90年代的中国，几乎每个城市的公园、社区和学校里，都能找到一座大象滑梯。它们大多由水磨石或水泥浇筑而成，造型憨态可掬，象鼻化作长长的滑道，承载了无数孩童的欢声笑语。
-          </p>
-          <p>
-            然而，随着时代的发展和安全标准的更新，这些曾经的“游乐场顶流”正面临着被拆除或遗弃的命运。新型的塑料游乐设施取代了它们的位置，水磨石大象逐渐退出了历史舞台。
-          </p>
+      {/* Content Section */}
+      <main className="relative bg-white z-10">
+        {/* Intro Text */}
+        <div className="max-w-3xl mx-auto px-6 py-24 md:py-32 font-serif text-lg md:text-xl leading-loose text-slate-800 space-y-12 text-center">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8 }}
+          >
+            水磨石的温润，水泥的坚固。它们曾是几代人童年最珍贵的游乐场，如今正随着城市更新悄然消失。这是一场与时间赛跑的数字化考古。
+          </motion.p>
           
-          <blockquote className="border-l-4 border-slate-900 pl-6 my-12 italic text-2xl text-slate-600">
-            "它们不仅是游乐设施，更是城市公共空间的时代印记，是几代人共同的集体记忆。"
-          </blockquote>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="w-16 h-1 bg-slate-200 mx-auto"
+          />
 
-          <p>
+          <motion.div
+             initial={{ opacity: 0, y: 20 }}
+             whileInView={{ opacity: 1, y: 0 }}
+             viewport={{ once: true, margin: "-100px" }}
+             transition={{ duration: 0.8, delay: 0.4 }}
+             className="text-left space-y-8"
+          >
+            <p>
+              在20世纪70年代至90年代的中国，几乎每个城市的公园、社区和学校里，都能找到一座大象滑梯。它们大多由水磨石或水泥浇筑而成，造型憨态可掬，象鼻化作长长的滑道，承载了无数孩童的欢声笑语。
+            </p>
+            <p>
+              然而，随着时代的发展和安全标准的更新，这些曾经的“游乐场顶流”正面临着被拆除或遗弃的命运。新型的塑料游乐设施取代了它们的位置，水磨石大象逐渐退出了历史舞台。
+            </p>
+          </motion.div>
+          
+          <motion.blockquote 
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1, delay: 0.6 }}
+            className="border-l-4 border-slate-900 pl-6 py-2 italic text-2xl text-slate-600 text-left my-12"
+          >
+            "它们不仅是游乐设施，更是城市公共空间的时代印记，是几代人共同的集体记忆。"
+          </motion.blockquote>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="text-left"
+          >
             为了留住这些珍贵的记忆，我们发起了“全国大象滑梯数字化考古与科普计划”。通过众包的力量，我们正在全国范围内寻找、记录和标记现存或已消失的大象滑梯。
-          </p>
+          </motion.p>
         </div>
 
         {/* Gallery Grid */}
@@ -121,9 +166,6 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
                     alt={slide.nickname}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      e.currentTarget.src = `https://picsum.photos/seed/${slide.id}/600/400`;
-                    }}
                   />
                   {slide.status === 'demolished' && (
                     <div className="absolute top-3 right-3 bg-red-500/90 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm">
@@ -163,7 +205,7 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
           </div>
         </div>
       </main>
-
+      
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-12">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between text-sm text-slate-500">
