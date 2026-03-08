@@ -98,6 +98,7 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
                   referrerPolicy="no-referrer"
                   containerClassName="w-full h-full"
                   skeletonClassName="bg-slate-800"
+                  width={1200}
                 />
               </motion.div>
             )}
@@ -230,6 +231,7 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
                     containerClassName="w-full h-full"
+                    width={400}
                   />
                   {slide.status === 'demolished' && (
                     <div className="absolute top-3 right-3 bg-red-500/90 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm z-20">

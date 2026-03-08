@@ -12,6 +12,24 @@ import Home from './components/Home';
 import PuzzleGame from './components/PuzzleGame';
 import ContributeForm from './components/ContributeForm';
 import { ElephantIcon } from './components/ElephantIcon';
+import { ImageWithSkeleton } from './components/ImageWithSkeleton';
+
+const PROVINCE_ORDER = [
+  "北京市", "天津市", "河北省", "山西省", "内蒙古自治区",
+  "辽宁省", "吉林省", "黑龙江省", "上海市", "江苏省",
+  "浙江省", "安徽省", "福建省", "江西省", "山东省",
+  "河南省", "湖北省", "湖南省", "广东省", "广西壮族自治区",
+  "海南省", "重庆市", "四川省", "贵州省", "云南省",
+  "西藏自治区", "陕西省", "甘肃省", "青海省", "宁夏回族自治区",
+  "新疆维吾尔自治区", "港澳台地区（特别行政区）"
+];
+
+const normalizeProvince = (province: string) => {
+  if (province === '广西自治区') return '广西壮族自治区';
+  if (province === '维吾尔自治区') return '新疆维吾尔自治区';
+  if (province === '台湾省' || province === '香港特别行政区' || province === '澳门特别行政区') return '港澳台地区（特别行政区）';
+  return province;
+};
 
 export default function App() {
   const [view, setView] = useState<'home' | 'database' | 'game'>('home');
@@ -31,6 +49,7 @@ export default function App() {
   const [isContributeOpen, setIsContributeOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [displayMode, setDisplayMode] = useState<'map' | 'grid'>('map');
+  const [collapsedGridProvinces, setCollapsedGridProvinces] = useState<string[]>([]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -65,6 +84,12 @@ export default function App() {
     setExpandedCities(prev => prev.includes(cityKey) ? prev.filter(c => c !== cityKey) : [...prev, cityKey]);
   };
 
+  const toggleGridProvince = (province: string) => {
+    setCollapsedGridProvinces(prev => 
+      prev.includes(province) ? prev.filter(p => p !== province) : [...prev, province]
+    );
+  };
+
   const handleContributeSubmit = (data: any) => {
     console.log('New contribution:', data);
     // In a real app, this would send data to a backend
@@ -91,7 +116,8 @@ export default function App() {
     const groups: Record<string, Record<string, ElephantSlide[]>> = {};
     filteredSlides.forEach(slide => {
       const provinceMatch = slide.description.match(/所在省份:\s*(.+)/);
-      const province = provinceMatch ? provinceMatch[1].trim() : '其他';
+      let province = provinceMatch ? provinceMatch[1].trim() : '其他';
+      province = normalizeProvince(province);
       const city = slide.city || '其他';
 
       if (!groups[province]) groups[province] = {};
@@ -100,6 +126,18 @@ export default function App() {
     });
     return groups;
   }, [filteredSlides]);
+
+  const sortedGroupedSlides = useMemo(() => {
+    return Object.entries(groupedSlides).sort(([a], [b]) => {
+      const indexA = PROVINCE_ORDER.indexOf(a);
+      const indexB = PROVINCE_ORDER.indexOf(b);
+      
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      return a.localeCompare(b, 'zh-CN');
+    });
+  }, [groupedSlides]);
 
   const getStatusColor = (status: SlideStatus) => {
     switch(status) {
@@ -240,6 +278,17 @@ export default function App() {
               />
             </div>
           </div>
+
+          {/* Floating Toggle Button (Map Mode) */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[400]">
+            <button
+              onClick={() => setDisplayMode('grid')}
+              className="bg-slate-900 text-white px-5 py-2.5 rounded-full shadow-lg hover:bg-slate-800 transition-transform hover:scale-105 active:scale-95 flex items-center gap-2 font-medium text-sm"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span>卡片列表</span>
+            </button>
+          </div>
         </div>
 
         {/* Right: List (Collapsible Sidebar) */}
@@ -282,7 +331,7 @@ export default function App() {
 
           <div className="flex-1 overflow-y-auto p-6">
             <div className="flex flex-col gap-4">
-            {Object.entries(groupedSlides).map(([province, cities]) => {
+            {sortedGroupedSlides.map(([province, cities]) => {
               const isProvinceExpanded = expandedProvinces.includes(province);
               const provinceSlideCount = Object.values(cities).reduce((acc, slides) => acc + slides.length, 0);
               
@@ -475,88 +524,108 @@ export default function App() {
             </div>
 
             {/* Grid Content */}
-            <div className="max-w-7xl mx-auto space-y-12">
-              {Object.entries(groupedSlides).map(([province, cities]) => (
-                <div key={province}>
-                  <h2 className="text-2xl font-serif font-bold text-slate-800 mb-6 flex items-center gap-2 sticky top-0 bg-[#f4f5f7]/95 backdrop-blur-sm py-4 z-10">
-                    <MapPin className="w-6 h-6 text-slate-400" />
-                    {province}
-                    <span className="text-sm font-normal text-slate-400 bg-white px-2 py-0.5 rounded-full border border-slate-200 ml-2">
-                      {Object.values(cities).reduce((acc, slides) => acc + slides.length, 0)}
-                    </span>
-                  </h2>
-                  <div className="space-y-8 pl-4 md:pl-8 border-l-2 border-slate-200 ml-3">
-                    {Object.entries(cities).map(([city, slides]) => (
-                      <div key={city}>
-                        <h3 className="text-lg font-medium text-slate-600 mb-4 flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-                          {city}
-                        </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                          {slides.map(slide => (
-                            <motion.div 
-                              key={slide.id}
-                              layoutId={`card-${slide.id}`}
-                              onClick={() => setSelectedSlide(slide)}
-                              className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-slate-200 hover:border-[#7a808d]/30 transition-all"
-                            >
-                              <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
-                                {slide.imageUrl ? (
-                                  <img 
-                                    src={slide.imageUrl} 
-                                    alt={slide.nickname}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                    referrerPolicy="no-referrer"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-300">
-                                    <ElephantIcon className="w-12 h-12 opacity-20" />
-                                  </div>
-                                )}
-                                <div className="absolute top-3 right-3 flex gap-2">
-                                  {slide.status === 'demolished' && (
-                                    <div className="bg-red-500/90 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm shadow-sm">
-                                      已拆除
-                                    </div>
-                                  )}
-                                  <button 
-                                    onClick={(e) => toggleFavorite(e, slide.id)}
-                                    className={`p-1.5 rounded-full backdrop-blur-md shadow-sm transition-colors ${favorites.includes(slide.id) ? 'bg-white text-red-500' : 'bg-black/20 text-white hover:bg-white hover:text-red-500'}`}
-                                  >
-                                    <Heart className={`w-3.5 h-3.5 ${favorites.includes(slide.id) ? 'fill-current' : ''}`} />
-                                  </button>
-                                </div>
-                                <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded text-[10px] font-medium text-slate-600 shadow-sm">
-                                  {slide.id}
+            <div className="max-w-7xl mx-auto space-y-12 pb-20">
+              {sortedGroupedSlides.map(([province, cities]) => {
+                const isCollapsed = collapsedGridProvinces.includes(province);
+                return (
+                  <div key={province}>
+                    <button 
+                      onClick={() => toggleGridProvince(province)}
+                      className="w-full text-2xl font-serif font-bold text-slate-800 mb-6 flex items-center gap-2 sticky top-0 bg-[#f4f5f7]/95 backdrop-blur-sm py-4 z-10 hover:text-slate-600 transition-colors"
+                    >
+                      {isCollapsed ? <ChevronRight className="w-6 h-6 text-slate-400" /> : <ChevronDown className="w-6 h-6 text-slate-400" />}
+                      {province}
+                      <span className="text-sm font-normal text-slate-400 bg-white px-2 py-0.5 rounded-full border border-slate-200 ml-2">
+                        {Object.values(cities).reduce((acc, slides) => acc + slides.length, 0)}
+                      </span>
+                    </button>
+                    
+                    <AnimatePresence>
+                      {!isCollapsed && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="space-y-8 pl-4 md:pl-8 border-l-2 border-slate-200 ml-3 pb-8">
+                            {Object.entries(cities).map(([city, slides]) => (
+                              <div key={city}>
+                                <h3 className="text-lg font-medium text-slate-600 mb-4 flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-slate-300"></span>
+                                  {city}
+                                </h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                  {slides.map(slide => (
+                                    <motion.div 
+                                      key={slide.id}
+                                      layoutId={`card-${slide.id}`}
+                                      onClick={() => setSelectedSlide(slide)}
+                                      className="group cursor-pointer bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-slate-200 hover:border-[#7a808d]/30 transition-all"
+                                    >
+                                      <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
+                                        {slide.imageUrl ? (
+                                          <ImageWithSkeleton 
+                                            src={slide.imageUrl} 
+                                            alt={slide.nickname}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            referrerPolicy="no-referrer"
+                                            containerClassName="w-full h-full"
+                                            width={400}
+                                          />
+                                        ) : (
+                                          <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-300">
+                                            <ElephantIcon className="w-12 h-12 opacity-20" />
+                                          </div>
+                                        )}
+                                        <div className="absolute top-3 right-3 flex gap-2 z-20">
+                                          {slide.status === 'demolished' && (
+                                            <div className="bg-red-500/90 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm shadow-sm">
+                                              已拆除
+                                            </div>
+                                          )}
+                                          <button 
+                                            onClick={(e) => toggleFavorite(e, slide.id)}
+                                            className={`p-1.5 rounded-full backdrop-blur-md shadow-sm transition-colors ${favorites.includes(slide.id) ? 'bg-white text-red-500' : 'bg-black/20 text-white hover:bg-white hover:text-red-500'}`}
+                                          >
+                                            <Heart className={`w-3.5 h-3.5 ${favorites.includes(slide.id) ? 'fill-current' : ''}`} />
+                                          </button>
+                                        </div>
+                                        <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-2 py-1 rounded text-[10px] font-medium text-slate-600 shadow-sm z-20">
+                                          {slide.id}
+                                        </div>
+                                      </div>
+                                      
+                                      <div className="p-4">
+                                        <h3 className="text-lg font-serif font-bold mb-1 text-slate-900 group-hover:text-[#7a808d] transition-colors line-clamp-1">{slide.nickname}</h3>
+                                        <div className="flex items-center gap-1.5 text-sm text-slate-500 mb-3">
+                                          <MapPin className="w-3.5 h-3.5" />
+                                          <span className="line-clamp-1">{slide.location}</span>
+                                        </div>
+                                        
+                                        <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
+                                          <div className="flex items-center gap-1">
+                                            <Calendar className="w-3 h-3" />
+                                            <span>{slide.buildYear}</span>
+                                          </div>
+                                          <div className="flex items-center gap-1">
+                                            <Layers className="w-3 h-3" />
+                                            <span>{slide.material}</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </motion.div>
+                                  ))}
                                 </div>
                               </div>
-                              
-                              <div className="p-4">
-                                <h3 className="text-lg font-serif font-bold mb-1 text-slate-900 group-hover:text-[#7a808d] transition-colors line-clamp-1">{slide.nickname}</h3>
-                                <div className="flex items-center gap-1.5 text-sm text-slate-500 mb-3">
-                                  <MapPin className="w-3.5 h-3.5" />
-                                  <span className="line-clamp-1">{slide.location}</span>
-                                </div>
-                                
-                                <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
-                                    <span>{slide.buildYear}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <Layers className="w-3 h-3" />
-                                    <span>{slide.material}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
-                </div>
-              ))}
+                );
+              })}
               
               {filteredSlides.length === 0 && (
                 <div className="flex flex-col items-center justify-center h-64 text-slate-400">
@@ -564,6 +633,17 @@ export default function App() {
                   <p className="text-lg">没有找到符合条件的大象滑梯</p>
                 </div>
               )}
+            </div>
+
+            {/* Floating Toggle Button (Grid Mode) */}
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[400]">
+              <button
+                onClick={() => setDisplayMode('map')}
+                className="bg-slate-900 text-white px-5 py-2.5 rounded-full shadow-lg hover:bg-slate-800 transition-transform hover:scale-105 active:scale-95 flex items-center gap-2 font-medium text-sm"
+              >
+                <Map className="w-4 h-4" />
+                <span>地图模式</span>
+              </button>
             </div>
           </div>
         )}
@@ -585,11 +665,13 @@ export default function App() {
               className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-[501] overflow-y-auto border-l border-slate-200"
             >
               <div className="relative h-64 bg-slate-100">
-                <img 
+                <ImageWithSkeleton 
                   src={selectedSlide.imageUrl} 
                   alt={selectedSlide.nickname}
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
+                  containerClassName="w-full h-full"
+                  width={800}
                 />
                 <button 
                   onClick={() => setSelectedSlide(null)}
