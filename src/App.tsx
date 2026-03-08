@@ -218,8 +218,8 @@ export default function App() {
 
         {/* Right: List (Collapsible Sidebar) */}
         <motion.div 
-          initial={{ width: 400 }}
-          animate={{ width: isSidebarOpen ? 400 : 0 }}
+          initial={{ width: 540 }}
+          animate={{ width: isSidebarOpen ? 540 : 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="h-full bg-[#f4f5f7] border-l border-slate-200 overflow-hidden flex flex-col shadow-xl z-10"
         >
@@ -294,7 +294,7 @@ export default function App() {
                                       exit={{ height: 0, opacity: 0 }}
                                       className="overflow-hidden"
                                     >
-                                      <div className="p-3 bg-slate-50/50 border-t border-slate-100 grid grid-cols-1 gap-3">
+                                      <div className="p-3 bg-slate-50/50 border-t border-slate-100 grid grid-cols-2 gap-3">
                                         {slides.map(slide => (
                                           <motion.div 
                                             key={slide.id}
