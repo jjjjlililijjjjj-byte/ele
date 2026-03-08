@@ -68,6 +68,7 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
               src="https://images.unsplash.com/photo-1604004218844-48601676831d?q=80&w=2574&auto=format&fit=crop" 
               alt="Vintage playground" 
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              referrerPolicy="no-referrer"
             />
             <div className="absolute inset-0 bg-black/10"></div>
           </div>
@@ -120,6 +121,9 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
                     alt={slide.nickname}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      e.currentTarget.src = `https://picsum.photos/seed/${slide.id}/600/400`;
+                    }}
                   />
                   {slide.status === 'demolished' && (
                     <div className="absolute top-3 right-3 bg-red-500/90 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm">

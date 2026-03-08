@@ -243,6 +243,9 @@ export default function App() {
                   alt={selectedSlide.nickname}
                   className="w-full h-full object-cover"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    e.currentTarget.src = `https://picsum.photos/seed/${selectedSlide.id}/600/400`;
+                  }}
                 />
                 <button 
                   onClick={() => setSelectedSlide(null)}
