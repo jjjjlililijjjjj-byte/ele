@@ -1,4 +1,5 @@
-import { motion } from 'motion/react';
+import { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, MapPin, Sparkles } from 'lucide-react';
 import { slidesData } from '../data';
 import { ElephantIcon } from './ElephantIcon';
@@ -11,6 +12,26 @@ interface HomeProps {
 export default function Home({ onExplore, onPlayGame }: HomeProps) {
   // Get a few featured slides for the gallery
   const featuredSlides = slidesData.slice(0, 6);
+
+  // Filter slides with valid images for background rotation
+  const backgroundImages = useMemo(() => {
+    return slidesData
+      .filter(slide => slide.imageUrl && slide.imageUrl.startsWith('http'))
+      .map(slide => slide.imageUrl)
+      .sort(() => Math.random() - 0.5); // Shuffle images
+  }, []);
+
+  const [currentBgIndex, setCurrentBgIndex] = useState(0);
+
+  useEffect(() => {
+    if (backgroundImages.length === 0) return;
+
+    const interval = setInterval(() => {
+      setCurrentBgIndex((prev) => (prev + 1) % backgroundImages.length);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, [backgroundImages]);
 
   return (
     <div className="min-h-screen bg-[#fdfdfc] text-slate-900 font-sans overflow-y-auto">
@@ -37,18 +58,29 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden">
+      <section className="relative h-screen flex flex-col items-center justify-center overflow-hidden bg-slate-900">
         {/* Background Image */}
-        <div 
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage: `url('/images/hero-bg.png')`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
-        >
-          <div className="absolute inset-0 bg-black/30" /> {/* Overlay for text readability */}
+        <div className="absolute inset-0 z-0">
+          <AnimatePresence mode="popLayout">
+            {backgroundImages.length > 0 && (
+              <motion.div 
+                key={currentBgIndex}
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 2, ease: "easeInOut" }}
+                className="absolute inset-0"
+              >
+                <img 
+                  src={backgroundImages[currentBgIndex]} 
+                  alt="Background" 
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" /> {/* Overlay for text readability */}
         </div>
 
         <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">

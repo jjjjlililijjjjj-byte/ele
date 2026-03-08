@@ -446,9 +446,24 @@ export default function App() {
 
                 <div className="space-y-4">
                   <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">档案记录</h3>
-                  <p className="text-slate-700 leading-relaxed">
-                    {selectedSlide.description}
-                  </p>
+                  <table className="w-full text-sm text-left border-collapse">
+                    <tbody>
+                      {selectedSlide.description.split('\n').map((line, index) => {
+                        const parts = line.split(':');
+                        if (parts.length < 2) return null;
+                        const label = parts[0].trim();
+                        const value = parts.slice(1).join(':').trim();
+                        if (!label || !value) return null;
+                        
+                        return (
+                          <tr key={index}>
+                            <td className="py-2 pr-4 text-slate-500 font-medium whitespace-nowrap align-top w-24">{label}</td>
+                            <td className="py-2 text-slate-800 align-top">{value}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
 
                 {selectedSlide.relatedArticles && selectedSlide.relatedArticles.length > 0 && (
