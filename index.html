@@ -21,18 +21,38 @@
   <body>
     <div id="root"></div>
     <script>
-      // Aggressively clear all service workers and caches to fix "cannot open" issues on repeat visits
+      // WeChat-specific fix: Force a clean state on every new session in WeChat
       (function() {
+        const isWeChat = /MicroMessenger/i.test(navigator.userAgent);
+        const sessionKey = 'wechat_session_initialized';
+        
+        if (isWeChat && !sessionStorage.getItem(sessionKey)) {
+          // First time in this WeChat session, clear everything and set flag
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(regs => {
+              for(let reg of regs) reg.unregister();
+            });
+          }
+          if ('caches' in window) {
+            caches.keys().then(names => {
+              for (let name of names) caches.delete(name);
+            });
+          }
+          localStorage.removeItem('elephant-slides-favorites'); // Optional: clear state if suspecting corruption
+          sessionStorage.setItem(sessionKey, 'true');
+          
+          // Force a hard reload with a timestamp to bypass WeChat's internal cache
+          const url = new URL(window.location.href);
+          url.searchParams.set('t', Date.now());
+          window.location.replace(url.toString());
+          return;
+        }
+
+        // Standard aggressive clearing for all browsers
         if ('serviceWorker' in navigator) {
           navigator.serviceWorker.getRegistrations().then(function(registrations) {
             for(let registration of registrations) {
-              registration.unregister().then(function(boolean) {
-                if (boolean) {
-                  console.log('ServiceWorker unregistered');
-                  // Optional: force reload if we found and removed a worker
-                  // window.location.reload();
-                }
-              });
+              registration.unregister();
             }
           });
         }
@@ -40,15 +60,16 @@
         if ('caches' in window) {
           caches.keys().then(function(names) {
             for (let name of names) {
-              caches.delete(name).then(function() {
-                console.log('Cache cleared:', name);
-              });
+              caches.delete(name);
             }
           });
         }
-        
-        // Clear session storage just in case it's holding broken state
-        // sessionStorage.clear(); 
+        // Handle back/forward navigation from cache (BFCache)
+        window.addEventListener('pageshow', function(event) {
+          if (event.persisted) {
+            window.location.reload();
+          }
+        });
       })();
 
       // Patch console to prevent 'Converting circular structure to JSON' errors
