@@ -16,6 +16,15 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
+      // Force unregister any existing service workers to fix ERR_CONNECTION_RESET/stale cache issues
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister();
+          }
+        });
+      }
+
       // Patch console to prevent 'Converting circular structure to JSON' errors in the preview environment
       (function() {
         const originalError = console.error;
@@ -37,28 +46,36 @@
         console.warn = function(...args) { safeLog(originalWarn, args); };
       })();
     </script>
-    <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
+    <script 
+      src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"
+      async
+      crossorigin="anonymous"
+    ></script>
     <script>
       window.addEventListener('load', function() {
-        if (typeof CozeWebSDK !== 'undefined') {
-          new CozeWebSDK.WebChatClient({
-            config: {
-              bot_id: '7614866798114242566',
-            },
-            componentProps: {
-              title: '大象滑梯智能助手',
-              draggable: true,
-            },
-            auth: {
-              type: 'token',
-              token: 'pat_0Brdj5K5jGV6YtVr7tcmfU7Lbi5IxF7YuqMFww1gCE3yqFD7rz9QTnUESHoJQ5tk',
-              onRefreshToken: function () {
-                return 'pat_0Brdj5K5jGV6YtVr7tcmfU7Lbi5IxF7YuqMFww1gCE3yqFD7rz9QTnUESHoJQ5tk'
+        try {
+          if (typeof CozeWebSDK !== 'undefined') {
+            new CozeWebSDK.WebChatClient({
+              config: {
+                bot_id: '7614866798114242566',
+              },
+              componentProps: {
+                title: '大象滑梯智能助手',
+                draggable: true,
+              },
+              auth: {
+                type: 'token',
+                token: 'pat_0Brdj5K5jGV6YtVr7tcmfU7Lbi5IxF7YuqMFww1gCE3yqFD7rz9QTnUESHoJQ5tk',
+                onRefreshToken: function () {
+                  return 'pat_0Brdj5K5jGV6YtVr7tcmfU7Lbi5IxF7YuqMFww1gCE3yqFD7rz9QTnUESHoJQ5tk'
+                }
               }
-            }
-          });
-        } else {
-          console.warn('CozeWebSDK not loaded. Smart assistant will be unavailable.');
+            });
+          } else {
+            console.warn('CozeWebSDK not loaded. Smart assistant will be unavailable.');
+          }
+        } catch (err) {
+          console.error('Failed to initialize Coze SDK:', err);
         }
       });
     </script>
