@@ -40,8 +40,13 @@ export default function App() {
   const [selectedSlide, setSelectedSlide] = useState<ElephantSlide | null>(null);
   const [hoveredSlideId, setHoveredSlideId] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<string[]>(() => {
-    const saved = localStorage.getItem('elephant-slides-favorites');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('elephant-slides-favorites');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error('Failed to load favorites from localStorage:', e);
+      return [];
+    }
   });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [expandedProvinces, setExpandedProvinces] = useState<string[]>([]);

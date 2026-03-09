@@ -52,6 +52,22 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
     return () => clearInterval(interval);
   }, [backgroundImages]);
 
+  const handleClearCache = () => {
+    if ('caches' in window) {
+      caches.keys().then(names => {
+        for (let name of names) caches.delete(name);
+      });
+    }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (let registration of registrations) registration.unregister();
+      });
+    }
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen min-h-[100dvh] bg-[#fdfdfc] text-slate-900 font-sans overflow-y-auto">
       {/* Navigation */}
@@ -280,6 +296,9 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between text-sm text-slate-500">
           <p>© 2024 全国大象滑梯图鉴计划. All rights reserved.</p>
           <div className="flex items-center gap-6 mt-4 md:mt-0">
+            <button onClick={handleClearCache} className="hover:text-slate-900 flex items-center gap-1">
+              <RefreshCw className="w-3 h-3" /> 清除缓存
+            </button>
             <a href="#" className="hover:text-slate-900">关于我们</a>
             <a href="#" className="hover:text-slate-900">数据贡献</a>
             <a href="#" className="hover:text-slate-900">联系方式</a>
