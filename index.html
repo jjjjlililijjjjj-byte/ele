@@ -2,19 +2,21 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="theme-color" content="#ffffff" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="大象滑梯" />
     <meta name="format-detection" content="telephone=no" />
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <meta name="HandheldFriendly" content="true" />
+    <meta name="referrer" content="always" />
     <title>中国大象滑梯图鉴</title>
-    <link rel="preconnect" href="https://images.weserv.nl" />
-    <link rel="dns-prefetch" href="https://images.weserv.nl" />
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
     <script>
       // Force unregister any existing service workers to fix ERR_CONNECTION_RESET/stale cache issues
       if ('serviceWorker' in navigator) {
@@ -79,6 +81,7 @@
         }
       });
     </script>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
 
