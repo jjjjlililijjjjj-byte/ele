@@ -39,20 +39,26 @@
     </script>
     <script src="https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.19/libs/cn/index.js"></script>
     <script>
-      new CozeWebSDK.WebChatClient({
-        config: {
-          bot_id: '7614866798114242566',
-        },
-        componentProps: {
-          title: '大象滑梯智能助手',
-          draggable: true,
-        },
-        auth: {
-          type: 'token',
-          token: 'pat_0Brdj5K5jGV6YtVr7tcmfU7Lbi5IxF7YuqMFww1gCE3yqFD7rz9QTnUESHoJQ5tk',
-          onRefreshToken: function () {
-            return 'pat_0Brdj5K5jGV6YtVr7tcmfU7Lbi5IxF7YuqMFww1gCE3yqFD7rz9QTnUESHoJQ5tk'
-          }
+      window.addEventListener('load', function() {
+        if (typeof CozeWebSDK !== 'undefined') {
+          new CozeWebSDK.WebChatClient({
+            config: {
+              bot_id: '7614866798114242566',
+            },
+            componentProps: {
+              title: '大象滑梯智能助手',
+              draggable: true,
+            },
+            auth: {
+              type: 'token',
+              token: 'pat_0Brdj5K5jGV6YtVr7tcmfU7Lbi5IxF7YuqMFww1gCE3yqFD7rz9QTnUESHoJQ5tk',
+              onRefreshToken: function () {
+                return 'pat_0Brdj5K5jGV6YtVr7tcmfU7Lbi5IxF7YuqMFww1gCE3yqFD7rz9QTnUESHoJQ5tk'
+              }
+            }
+          });
+        } else {
+          console.warn('CozeWebSDK not loaded. Smart assistant will be unavailable.');
         }
       });
     </script>
