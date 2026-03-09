@@ -36,7 +36,8 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
     return slidesData
       .filter(slide => slide.imageUrl && slide.imageUrl.startsWith('http'))
       .map(slide => slide.imageUrl)
-      .sort(() => Math.random() - 0.5); // Shuffle images
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 10); // Limit to 10 images for rotation to save memory/bandwidth
   }, []);
 
   const [currentBgIndex, setCurrentBgIndex] = useState(0);
@@ -99,6 +100,7 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
                   containerClassName="w-full h-full"
                   skeletonClassName="bg-slate-800"
                   width={1200}
+                  loading="eager"
                 />
               </motion.div>
             )}
@@ -232,6 +234,7 @@ export default function Home({ onExplore, onPlayGame }: HomeProps) {
                     referrerPolicy="no-referrer"
                     containerClassName="w-full h-full"
                     width={400}
+                    loading={index < 3 ? "eager" : "lazy"}
                   />
                   {slide.status === 'demolished' && (
                     <div className="absolute top-3 right-3 bg-red-500/90 text-white text-[10px] font-bold px-2 py-1 rounded backdrop-blur-sm z-20">

@@ -2,9 +2,15 @@
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="大象滑梯" />
+    <meta name="format-detection" content="telephone=no" />
     <title>中国大象滑梯图鉴</title>
     <link rel="preconnect" href="https://images.weserv.nl" />
+    <link rel="dns-prefetch" href="https://images.weserv.nl" />
   </head>
   <body>
     <div id="root"></div>
@@ -38,7 +44,8 @@
           bot_id: '7614866798114242566',
         },
         componentProps: {
-          title: 'Coze',
+          title: '大象滑梯智能助手',
+          draggable: true,
         },
         auth: {
           type: 'token',

@@ -1,22 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, Trophy, Sparkles, ArrowRight, RefreshCw } from 'lucide-react';
 
-// Reusing the 3 SVGs for 9 levels with increasing difficulty
+// 9 Unique Illustration SVGs for Elephant Slides
 const SVG_1 = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#F3E8E0"/><g stroke="#3A2E2A" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"><path d="M100,250 C100,150 250,150 250,250 L250,350 L100,350 Z" fill="#D5C5B5"/><path d="M120,350 L120,380 L160,380 L160,350" fill="#D5C5B5"/><path d="M190,350 L190,380 L230,380 L230,350" fill="#D5C5B5"/><path d="M250,200 C320,200 350,250 350,320 L380,320 C380,220 320,170 250,170 Z" fill="#A8B5A1"/><path d="M150,180 C120,180 100,220 120,260 C140,280 180,260 170,210 Z" fill="#E5A999"/><circle cx="210" cy="190" r="6" fill="#3A2E2A" stroke="none"/><path d="M100,220 C70,220 60,250 70,280" fill="none"/></g></svg>`;
 const SVG_2 = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#E2E8DD"/><g stroke="#2C363F" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"><path d="M40,350 L40,200 L80,200 L80,250 L120,250 L120,300 L160,300 L160,350 Z" fill="#D6A2AD"/><path d="M160,200 C160,100 300,100 300,200 L300,350 L160,350 Z" fill="#8B9EB7"/><path d="M300,180 C360,180 380,250 350,320 L320,300 C340,250 320,210 300,210 Z" fill="#F2D0A4"/><path d="M200,150 C160,130 140,180 160,220 C180,250 230,220 220,170 Z" fill="#F2D0A4"/><path d="M260,160 Q270,150 280,160" fill="none"/></g></svg>`;
 const SVG_3 = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#F4E1D2"/><g stroke="#4A3B32" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"><path d="M50,350 L350,350 L350,380 L50,380 Z" fill="#A79C93"/><path d="M100,250 C100,150 200,150 200,250 L200,350 L100,350 Z" fill="#D9B4A6"/><path d="M100,200 C50,200 30,250 50,320 L80,300 C60,250 80,230 100,230 Z" fill="#8CABA1"/><circle cx="130" cy="190" r="5" fill="#4A3B32" stroke="none"/><path d="M200,250 C200,150 300,150 300,250 L300,350 L200,350 Z" fill="#D9B4A6"/><path d="M300,200 C350,200 370,250 350,320 L320,300 C340,250 320,230 300,230 Z" fill="#8CABA1"/><circle cx="270" cy="190" r="5" fill="#4A3B32" stroke="none"/><path d="M150,150 L250,150 L250,180 L150,180 Z" fill="#D9B4A6"/></g></svg>`;
+const SVG_4 = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#DDE6ED"/><g stroke="#27374D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"><path d="M120,350 L120,220 C120,150 280,150 280,220 L280,350 Z" fill="#9DB2BF"/><path d="M280,200 C350,200 380,250 380,320 L350,320 C350,250 320,220 280,220 Z" fill="#526D82"/><circle cx="160" cy="200" r="15" fill="#FFF" stroke="#27374D"/><circle cx="160" cy="200" r="5" fill="#27374D"/><path d="M120,250 L80,250 L80,350 L120,350 Z" fill="#9DB2BF"/></g></svg>`;
+const SVG_5 = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#F9F7F7"/><g stroke="#112D4E" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"><path d="M150,350 L150,250 C150,180 300,180 300,250 L300,350 Z" fill="#DBE2EF"/><path d="M300,230 C370,230 390,280 390,340 L360,340 C360,280 340,250 300,250 Z" fill="#3F72AF"/><path d="M150,220 C120,200 100,250 120,280 C140,310 180,280 170,240 Z" fill="#3F72AF"/><path d="M220,210 Q230,200 240,210" fill="none"/></g></svg>`;
+const SVG_6 = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#FFF4E0"/><g stroke="#4D4D4D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"><path d="M80,350 L80,200 C80,120 220,120 220,200 L220,350 Z" fill="#FF8E9E"/><path d="M220,180 C290,180 320,230 320,300 L290,300 C290,230 260,200 220,200 Z" fill="#FFB1B1"/><circle cx="130" cy="160" r="10" fill="#FFF"/><circle cx="130" cy="160" r="4" fill="#4D4D4D"/><path d="M80,220 L40,220 L40,350 L80,350 Z" fill="#FF8E9E"/></g></svg>`;
+const SVG_7 = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#E8F9FD"/><g stroke="#2155CD" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"><path d="M180,350 L180,250 C180,180 330,180 330,250 L330,350 Z" fill="#79DAE8"/><path d="M330,230 C390,230 410,280 410,340 L380,340 C380,280 360,250 330,250 Z" fill="#0AA1DD"/><path d="M180,220 C150,200 130,250 150,280 C170,310 210,280 200,240 Z" fill="#0AA1DD"/><path d="M250,210 Q260,200 270,210" fill="none"/></g></svg>`;
+const SVG_8 = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#FDF6EC"/><g stroke="#606266" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"><path d="M100,350 L100,200 C100,120 250,120 250,200 L250,350 Z" fill="#E6A23C"/><path d="M250,180 C320,180 350,230 350,300 L320,300 C320,230 290,200 250,200 Z" fill="#F56C6C"/><circle cx="150" cy="160" r="12" fill="#FFF"/><circle cx="150" cy="160" r="5" fill="#606266"/><path d="M100,220 L60,220 L60,350 L100,350 Z" fill="#E6A23C"/></g></svg>`;
+const SVG_9 = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#1A1A1A"/><g stroke="#FFD700" stroke-width="8" stroke-linejoin="round" stroke-linecap="round"><path d="M120,350 L120,200 C120,100 280,100 280,200 L280,350 Z" fill="#B8860B"/><path d="M280,180 C350,180 380,230 380,300 L350,300 C350,230 320,200 280,200 Z" fill="#FFD700"/><circle cx="180" cy="160" r="15" fill="#FFD700" stroke="#1A1A1A"/><circle cx="180" cy="160" r="6" fill="#1A1A1A"/><path d="M120,220 L80,220 L80,350 L120,350 Z" fill="#B8860B"/></g></svg>`;
 
 const LEVELS = [
   { id: 1, grid: 2, name: '初见大象 (1/9)', svg: SVG_1 },
   { id: 2, grid: 2, name: '滑梯岁月 (2/9)', svg: SVG_2 },
   { id: 3, grid: 3, name: '双象奇缘 (3/9)', svg: SVG_3 },
-  { id: 4, grid: 3, name: '童年记忆 (4/9)', svg: SVG_1 },
-  { id: 5, grid: 3, name: '快乐时光 (5/9)', svg: SVG_2 },
-  { id: 6, grid: 4, name: '公园一角 (6/9)', svg: SVG_3 },
-  { id: 7, grid: 4, name: '阳光午后 (7/9)', svg: SVG_1 },
-  { id: 8, grid: 4, name: '欢声笑语 (8/9)', svg: SVG_2 },
-  { id: 9, grid: 5, name: '终极挑战 (9/9)', svg: SVG_3 },
+  { id: 4, grid: 3, name: '童年记忆 (4/9)', svg: SVG_4 },
+  { id: 5, grid: 3, name: '快乐时光 (5/9)', svg: SVG_5 },
+  { id: 6, grid: 4, name: '公园一角 (6/9)', svg: SVG_6 },
+  { id: 7, grid: 4, name: '阳光午后 (7/9)', svg: SVG_7 },
+  { id: 8, grid: 4, name: '欢声笑语 (8/9)', svg: SVG_8 },
+  { id: 9, grid: 5, name: '终极挑战 (9/9)', svg: SVG_9 },
 ];
 
 function shuffleArray(array: number[]) {
@@ -188,13 +194,19 @@ export default function PuzzleGame({ onBack }: PuzzleGameProps) {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
                     onClick={() => handlePieceClick(idx)}
-                    className={`relative cursor-pointer rounded-sm overflow-hidden bg-white ${selectedIdx === idx ? 'ring-4 ring-slate-900 z-10 scale-95' : 'z-0 hover:opacity-90'}`}
+                    className={`relative cursor-pointer rounded-sm overflow-hidden bg-white group ${selectedIdx === idx ? 'ring-4 ring-slate-900 z-10 scale-95' : 'z-0 hover:opacity-90'}`}
                     style={{
                       backgroundImage: `url("${imageUrl}")`,
                       backgroundSize: `${gridSize * 100}% ${gridSize * 100}%`,
                       backgroundPosition: `${(correctCol / (gridSize - 1)) * 100}% ${(correctRow / (gridSize - 1)) * 100}%`,
                     }}
-                  />
+                  >
+                    {/* Unique identifier for each tile to make them "different" */}
+                    <div className="absolute inset-0 border border-white/10 pointer-events-none" />
+                    <div className="absolute bottom-1 right-1 text-[8px] font-mono text-white/30 pointer-events-none">
+                      {pieceId + 1}
+                    </div>
+                  </motion.div>
                 );
               })}
             </AnimatePresence>

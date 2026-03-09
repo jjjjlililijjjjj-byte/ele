@@ -4,13 +4,14 @@
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, MapPin, Calendar, Layers, Info, X, Github, ArrowLeft, Heart, ChevronDown, ChevronRight, LayoutGrid, Map } from 'lucide-react';
+import { Search, MapPin, Calendar, Layers, Info, X, Github, ArrowLeft, Heart, ChevronDown, ChevronRight, LayoutGrid, Map, Sparkles, Share2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { slidesData } from './data';
 import { ElephantSlide, SlideStatus } from './types';
 import Home from './components/Home';
-import PuzzleGame from './components/PuzzleGame';
-import ContributeForm from './components/ContributeForm';
+const PuzzleGame = React.lazy(() => import('./components/PuzzleGame'));
+const ContributeForm = React.lazy(() => import('./components/ContributeForm'));
+const ShareCard = React.lazy(() => import('./components/ShareCard'));
 import { ElephantIcon } from './components/ElephantIcon';
 import { ImageWithSkeleton } from './components/ImageWithSkeleton';
 
@@ -47,9 +48,22 @@ export default function App() {
   const [expandedCities, setExpandedCities] = useState<string[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isContributeOpen, setIsContributeOpen] = useState(false);
+  const [isShareCardOpen, setIsShareCardOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [displayMode, setDisplayMode] = useState<'map' | 'grid'>('map');
   const [collapsedGridProvinces, setCollapsedGridProvinces] = useState<string[]>([]);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -156,7 +170,11 @@ export default function App() {
   };
 
   if (view === 'game') {
-    return <PuzzleGame onBack={() => setView('home')} />;
+    return (
+      <React.Suspense fallback={<div className="flex items-center justify-center h-screen bg-white">正在加载游戏...</div>}>
+        <PuzzleGame onBack={() => setView('home')} />
+      </React.Suspense>
+    );
   }
 
   if (view === 'home') {
@@ -165,6 +183,20 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen h-[100dvh] bg-[#f4f5f7] text-slate-800 font-sans overflow-hidden">
+      {/* Offline Banner */}
+      <AnimatePresence>
+        {!isOnline && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="bg-amber-500 text-white text-center py-1 text-xs font-medium z-[1000]"
+          >
+            您当前处于离线状态，部分功能（如地图）可能无法正常使用。
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <header className="flex-none bg-white border-b border-slate-200 px-4 md:px-6 py-3 md:py-4 flex items-center justify-between z-10 shadow-sm">
         <div className="flex items-center gap-3 md:gap-4">
@@ -221,6 +253,7 @@ export default function App() {
             src="https://www.google.com/maps/d/embed?mid=1J1_JVivWfqEfDzc8Pajs6o2MKAX0K6M&ehbc=2E312F" 
             className="w-full h-full border-0"
             title="大象滑梯位置信息动态互动地图"
+            loading="lazy"
           />
           
           {/* Sidebar Toggle Button (Floating on Map Edge) */}
@@ -333,7 +366,7 @@ export default function App() {
             <div className="flex flex-col gap-4">
             {sortedGroupedSlides.map(([province, cities]) => {
               const isProvinceExpanded = expandedProvinces.includes(province);
-              const provinceSlideCount = Object.values(cities).reduce((acc, slides) => acc + slides.length, 0);
+              const provinceSlideCount = Object.values(cities).reduce((acc: number, slides) => acc + (slides as any[]).length, 0);
               
               return (
                 <div key={province} className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -371,7 +404,7 @@ export default function App() {
                                     {isCityExpanded ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
                                     <h4 className="text-sm font-medium text-slate-700">{city}</h4>
                                   </div>
-                                  <span className="text-xs font-mono text-slate-400">{slides.length}</span>
+                                  <span className="text-xs font-mono text-slate-400">{(slides as any[]).length}</span>
                                 </button>
                                 
                                 <AnimatePresence>
@@ -383,7 +416,7 @@ export default function App() {
                                       className="overflow-hidden"
                                     >
                                       <div className="p-3 bg-slate-50/50 border-t border-slate-100 grid grid-cols-2 gap-3">
-                                        {slides.map(slide => (
+                                        {(slides as any[]).map(slide => (
                                           <motion.div 
                                             key={slide.id}
                                             layoutId={`card-${slide.id}`}
@@ -536,7 +569,7 @@ export default function App() {
                       {isCollapsed ? <ChevronRight className="w-6 h-6 text-slate-400" /> : <ChevronDown className="w-6 h-6 text-slate-400" />}
                       {province}
                       <span className="text-sm font-normal text-slate-400 bg-white px-2 py-0.5 rounded-full border border-slate-200 ml-2">
-                        {Object.values(cities).reduce((acc, slides) => acc + slides.length, 0)}
+                        {Object.values(cities).reduce((acc: number, slides) => acc + (slides as any[]).length, 0)}
                       </span>
                     </button>
                     
@@ -549,14 +582,14 @@ export default function App() {
                           className="overflow-hidden"
                         >
                           <div className="space-y-8 pl-4 md:pl-8 border-l-2 border-slate-200 ml-3 pb-8">
-                            {Object.entries(cities).map(([city, slides]) => (
+                                  {Object.entries(cities).map(([city, slides]) => (
                               <div key={city}>
                                 <h3 className="text-lg font-medium text-slate-600 mb-4 flex items-center gap-2">
                                   <span className="w-2 h-2 rounded-full bg-slate-300"></span>
                                   {city}
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                  {slides.map(slide => (
+                                  {(slides as any[]).map(slide => (
                                     <motion.div 
                                       key={slide.id}
                                       layoutId={`card-${slide.id}`}
@@ -660,136 +693,168 @@ export default function App() {
               onClick={() => setSelectedSlide(null)}
               className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-[500]"
             />
-            <motion.div 
-              layoutId={`card-${selectedSlide.id}`}
-              className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white shadow-2xl z-[501] overflow-y-auto border-l border-slate-200"
-            >
-              <div className="relative h-64 bg-slate-100">
-                <ImageWithSkeleton 
-                  src={selectedSlide.imageUrl} 
-                  alt={selectedSlide.nickname}
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                  containerClassName="w-full h-full"
-                  width={800}
-                />
-                <button 
-                  onClick={() => setSelectedSlide(null)}
-                  className="absolute top-4 right-4 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-                <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm">
-                  <span className={`w-2.5 h-2.5 rounded-full ${getStatusColor(selectedSlide.status)}`}></span>
-                  <span className="text-xs font-semibold text-slate-800">{getStatusText(selectedSlide.status)}</span>
-                </div>
-                <button 
-                  onClick={(e) => toggleFavorite(e, selectedSlide.id)}
-                  className={`absolute bottom-4 right-4 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md shadow-sm transition-colors ${favorites.includes(selectedSlide.id) ? 'bg-white text-red-500' : 'bg-white/90 text-slate-400 hover:text-red-500'}`}
-                >
-                  <Heart className={`w-5 h-5 ${favorites.includes(selectedSlide.id) ? 'fill-current' : ''}`} />
-                </button>
-              </div>
-
-              <div className="p-8">
-                <div className="flex justify-between items-end mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-slate-900 mb-2">{selectedSlide.nickname}</h2>
-                    <div className="flex items-center gap-2 text-slate-500">
-                      <MapPin className="w-4 h-4" />
-                      <span>{selectedSlide.city} · {selectedSlide.location}</span>
-                    </div>
+            <div className={
+              displayMode === 'grid'
+                ? "fixed inset-0 flex items-center justify-center z-[501] p-4 pointer-events-none"
+                : "fixed right-0 top-0 bottom-0 w-full max-w-md z-[501] pointer-events-none"
+            }>
+              <motion.div 
+                layoutId={`card-${selectedSlide.id}`}
+                className={
+                  displayMode === 'grid'
+                    ? "w-full max-w-2xl max-h-[90vh] bg-white shadow-2xl overflow-y-auto rounded-3xl border border-slate-200 pointer-events-auto"
+                    : "h-full w-full bg-white shadow-2xl overflow-y-auto border-l border-slate-200 pointer-events-auto"
+                }
+              >
+                <div className="relative h-64 bg-slate-100">
+                  <ImageWithSkeleton 
+                    src={selectedSlide.imageUrl} 
+                    alt={selectedSlide.nickname}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                    containerClassName="w-full h-full"
+                    width={800}
+                  />
+                  <button 
+                    onClick={() => setSelectedSlide(null)}
+                    className="absolute top-4 right-4 w-8 h-8 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                  <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-sm">
+                    <span className={`w-2.5 h-2.5 rounded-full ${getStatusColor(selectedSlide.status)}`}></span>
+                    <span className="text-xs font-semibold text-slate-800">{getStatusText(selectedSlide.status)}</span>
                   </div>
-                  <span className="text-sm font-mono text-slate-400 bg-slate-100 px-2 py-1 rounded">{selectedSlide.id}</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                  <div className="bg-[#f4f5f7] p-4 rounded-xl">
-                    <div className="flex items-center gap-2 text-slate-500 mb-1">
-                      <Calendar className="w-4 h-4" />
-                      <span className="text-xs uppercase tracking-wider font-semibold">建成年代</span>
-                    </div>
-                    <p className="text-lg font-medium text-slate-900">{selectedSlide.buildYear}年</p>
-                  </div>
-                  <div className="bg-[#e8e4d9]/50 p-4 rounded-xl">
-                    <div className="flex items-center gap-2 text-slate-500 mb-1">
-                      <Layers className="w-4 h-4" />
-                      <span className="text-xs uppercase tracking-wider font-semibold">主要材质</span>
-                    </div>
-                    <p className="text-lg font-medium text-slate-900">{selectedSlide.material}</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">档案记录</h3>
-                  <table className="w-full text-sm text-left border-collapse">
-                    <tbody>
-                      {selectedSlide.description.split('\n').map((line, index) => {
-                        const parts = line.split(':');
-                        if (parts.length < 2) return null;
-                        const label = parts[0].trim();
-                        const value = parts.slice(1).join(':').trim();
-                        if (!label || !value) return null;
-                        
-                        return (
-                          <tr key={index}>
-                            <td className="py-2 pr-4 text-slate-500 font-medium whitespace-nowrap align-top w-24">{label}</td>
-                            <td className="py-2 text-slate-800 align-top">{value}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                {selectedSlide.relatedArticles && selectedSlide.relatedArticles.length > 0 && (
-                  <div className="mt-8 space-y-4">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">相关科普</h3>
-                    <div className="flex flex-col gap-3">
-                      {selectedSlide.relatedArticles.map((article, idx) => (
-                        <a 
-                          key={idx}
-                          href={article.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors group"
-                        >
-                          <div className="flex-1">
-                            <h4 className="text-sm font-medium text-slate-900 group-hover:text-[#7a808d] transition-colors mb-1">
-                              {article.title}
-                            </h4>
-                            {article.source && (
-                              <span className="text-xs text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200">
-                                {article.source}
-                              </span>
-                            )}
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 mt-0.5" />
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-12 pt-6 border-t border-slate-100">
-                  <div className="flex items-center justify-between text-xs text-slate-400">
-                    <span>坐标: {selectedSlide.coordinates[0].toFixed(4)}, {selectedSlide.coordinates[1].toFixed(4)}</span>
-                    <button className="text-[#7a808d] hover:text-slate-900 font-medium transition-colors">
-                      提供补充信息
+                  <div className="absolute bottom-4 right-4 flex gap-2">
+                    <button 
+                      onClick={() => setIsShareCardOpen(true)}
+                      className="w-10 h-10 rounded-full flex items-center justify-center bg-white/90 text-slate-400 hover:text-[#7a808d] backdrop-blur-md shadow-sm transition-colors"
+                      title="分享知识卡片"
+                    >
+                      <Share2 className="w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={(e) => toggleFavorite(e, selectedSlide.id)}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md shadow-sm transition-colors ${favorites.includes(selectedSlide.id) ? 'bg-white text-red-500' : 'bg-white/90 text-slate-400 hover:text-red-500'}`}
+                    >
+                      <Heart className={`w-5 h-5 ${favorites.includes(selectedSlide.id) ? 'fill-current' : ''}`} />
                     </button>
                   </div>
                 </div>
-              </div>
-            </motion.div>
+
+                <div className="p-8">
+                  <div className="flex justify-between items-end mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-900 mb-2">{selectedSlide.nickname}</h2>
+                      <div className="flex items-center gap-2 text-slate-500">
+                        <MapPin className="w-4 h-4" />
+                        <span>{selectedSlide.city} · {selectedSlide.location}</span>
+                      </div>
+                    </div>
+                    <span className="text-sm font-mono text-slate-400 bg-slate-100 px-2 py-1 rounded">{selectedSlide.id}</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="bg-[#f4f5f7] p-4 rounded-xl">
+                      <div className="flex items-center gap-2 text-slate-500 mb-1">
+                        <Calendar className="w-4 h-4" />
+                        <span className="text-xs uppercase tracking-wider font-semibold">建成年代</span>
+                      </div>
+                      <p className="text-lg font-medium text-slate-900">{selectedSlide.buildYear}年</p>
+                    </div>
+                    <div className="bg-[#e8e4d9]/50 p-4 rounded-xl">
+                      <div className="flex items-center gap-2 text-slate-500 mb-1">
+                        <Layers className="w-4 h-4" />
+                        <span className="text-xs uppercase tracking-wider font-semibold">主要材质</span>
+                      </div>
+                      <p className="text-lg font-medium text-slate-900">{selectedSlide.material}</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">档案记录</h3>
+                    <table className="w-full text-sm text-left border-collapse">
+                      <tbody>
+                        {selectedSlide.description.split('\n').map((line, index) => {
+                          const parts = line.split(':');
+                          if (parts.length < 2) return null;
+                          const label = parts[0].trim();
+                          const value = parts.slice(1).join(':').trim();
+                          if (!label || !value) return null;
+                          
+                          return (
+                            <tr key={index}>
+                              <td className="py-2 pr-4 text-slate-500 font-medium whitespace-nowrap align-top w-24">{label}</td>
+                              <td className="py-2 text-slate-800 align-top">{value}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {selectedSlide.relatedArticles && selectedSlide.relatedArticles.length > 0 && (
+                    <div className="mt-8 space-y-4">
+                      <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-2">相关科普</h3>
+                      <div className="flex flex-col gap-3">
+                        {selectedSlide.relatedArticles.map((article, idx) => (
+                          <a 
+                            key={idx}
+                            href={article.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors group"
+                          >
+                            <div className="flex-1">
+                              <h4 className="text-sm font-medium text-slate-900 group-hover:text-[#7a808d] transition-colors mb-1">
+                                {article.title}
+                              </h4>
+                              {article.source && (
+                                <span className="text-xs text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                                  {article.source}
+                                </span>
+                              )}
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-slate-600 mt-0.5" />
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-12 pt-6 border-t border-slate-100">
+                    <div className="flex items-center justify-between text-xs text-slate-400">
+                      <span>坐标: {selectedSlide.coordinates[0].toFixed(4)}, {selectedSlide.coordinates[1].toFixed(4)}</span>
+                      <button className="text-[#7a808d] hover:text-slate-900 font-medium transition-colors">
+                        提供补充信息
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>
 
-      <ContributeForm 
-        isOpen={isContributeOpen} 
-        onClose={() => setIsContributeOpen(false)} 
-        onSubmit={handleContributeSubmit} 
-      />
+      <React.Suspense fallback={null}>
+        <ContributeForm 
+          isOpen={isContributeOpen} 
+          onClose={() => setIsContributeOpen(false)} 
+          onSubmit={handleContributeSubmit} 
+        />
+      </React.Suspense>
+
+      {/* Share Card Component */}
+      <React.Suspense fallback={null}>
+        {selectedSlide && (
+          <ShareCard
+            slide={selectedSlide}
+            isOpen={isShareCardOpen}
+            onClose={() => setIsShareCardOpen(false)}
+          />
+        )}
+      </React.Suspense>
     </div>
   );
 }
